@@ -1,6 +1,8 @@
 import { v2 as cloudinary } from 'cloudinary';
 
 import { getConfig } from '@/lib/config';
+import { getUserFolder } from '@/lib/utils';
+import { auth } from '@/lib/auth';
 
 cloudinary.config({
   cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
@@ -9,6 +11,12 @@ cloudinary.config({
 })
 
 export async function POST(request: Request) {
+  const session = await auth();
+  
+  if (!session?.user?.id) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
   const requestFormData = await request.formData()
 
   const skipCheck = requestFormData.get('skip-check') as string;
@@ -19,14 +27,16 @@ export async function POST(request: Request) {
     })
   }
 
-  const { assetsFolder } = getConfig();
+  const { assetsTag } = getConfig();
+  const userFolder = getUserFolder(session.user.id);
 
   const file = requestFormData.get('file') as string;
   const publicId = requestFormData.get('publicId') as string;
   const tags = requestFormData.getAll('tags') as Array<string> || [];
 
   const uploadOptions: Record<string, string | Array<string> | boolean> = {
-    folder: assetsFolder
+    folder: userFolder,
+    tags: [assetsTag, `user-${session.user.id}`, ...tags]
   };
 
   if ( typeof publicId === 'string' ) {
@@ -34,13 +44,9 @@ export async function POST(request: Request) {
     // includes the folder in it as well, we need to strip it, otherwise the
     // upload will be attempted to be placed in folder/folder
 
-    uploadOptions.public_id = publicId.replace(`${assetsFolder}/`, '');
+    uploadOptions.public_id = publicId.replace(`${userFolder}/`, '');
     uploadOptions.overwrite = true;
     uploadOptions.invalidate = true;
-  }
-
-  if ( tags ) {
-    uploadOptions.tags = tags;
   }
 
   const results = await cloudinary.uploader.upload(file, uploadOptions);

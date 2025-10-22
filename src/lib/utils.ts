@@ -6,108 +6,41 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
- * addCommas
- * @via Thanks ChatGPT
+ * getUserFolder - Generate user-specific folder path
+ * This function can be used on both client and server side
  */
-
-export function addCommas(number: number | string) {
-  if ( !['string', 'number'].includes(typeof number) ) return number;
-
-  const num = `${number}`;
-  const [whole, decimal] = num.split('.');
-  let digitsSplit = whole.split('');
-  let counter = 0;
-
-  // Iterate through the digits from right to left
-  for (var i = digitsSplit.length - 1; i >= 0; i--) {
-    // Increment the counter
-    counter++;
-
-    // If the counter is a multiple of 3 and we're not at the leftmost digit, add a comma
-    if (counter % 3 === 0 && i !== 0) {
-      digitsSplit.splice(i, 0, ",");
-    }
-  }
-
-  let digits = digitsSplit.join('');
-
-  if ( decimal ) {
-    digits = `${digits}.${decimal}`;
-  }
-
-  return digits;
+export function getUserFolder(userId: string): string {
+  return `imglio/user-${userId}`;
 }
 
 /**
- * formatBytes
+ * addCommas - Add commas to numbers for better readability
  */
-
-export function formatBytes(bytes: number) {
-  if ( typeof bytes !== 'number' ) return bytes;
-
-  const limit = 1000;
-  let numberFormat = 'b';
-
-  if ( bytes >= limit * 1000000 ) {
-    numberFormat = 'gb'
-  } else if ( bytes >= limit * 1000 ) {
-    numberFormat = 'mb';
-  } else if ( bytes >= limit ) {
-    numberFormat = 'kb';
-  }
-  
-  let normalizedBytes = bytes;
-
-  if ( numberFormat === 'gb' ) {
-    normalizedBytes = bytes / 1000000000;
-  } else if ( numberFormat === 'mb' ) {
-    normalizedBytes = bytes / 1000000;
-  } else if ( numberFormat === 'kb' ) {
-    normalizedBytes = bytes / 1000;
-  }
-
-  let amount = '';
-
-  if ( normalizedBytes % 1 !== 0 ) {
-    amount = normalizedBytes.toFixed(1);
-  } else {
-    amount = `${normalizedBytes}`;
-  }
-
-  amount = `${addCommas(amount)}`;
-
-  return `${amount} ${numberFormat}`;
+export function addCommas(num: number): string {
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
 /**
- * createHashFromString
- * @via https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/digest#converting_a_digest_to_a_hex_string
+ * formatBytes - Format bytes to human readable format
  */
+export function formatBytes(bytes: number, decimals = 2): string {
+  if (bytes === 0) return '0 Bytes';
 
-export async function createHashFromString(data: any, algorithm = 'SHA-256') {
-  if (!data) throw new Error('Failed to create hash. Data undefined.');
-  const encoder = new TextEncoder();
-  const hashBuffer = await crypto.subtle.digest(algorithm, encoder.encode(data))
-  const hashArray = Array.from(new Uint8Array(hashBuffer)); // convert buffer to byte array
-  const hashHex = hashArray.map((b) => b.toString(16).padStart(2, '0')).join(''); // convert bytes to hex string
-  return hashHex;
+  const k = 1024;
+  const dm = decimals < 0 ? 0 : decimals;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 }
 
 /**
- * checkStatus
+ * checkStatus - Check if a URL is accessible
  */
-
-export async function checkStatus(url: string) {
-  const resource = await fetch(url);
-
-  if (!resource.ok) {
-    await new Promise((resolve, reject) => {
-      setTimeout(() => {
-        resolve(undefined)
-      }, 500)
-    });
-    return await checkStatus(url);
+export async function checkStatus(url: string): Promise<void> {
+  const response = await fetch(url, { method: 'HEAD' });
+  if (!response.ok) {
+    throw new Error(`Failed to fetch ${url}: ${response.status}`);
   }
-
-  return true;
 }

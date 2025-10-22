@@ -2,12 +2,28 @@ import { getConfig } from '@/lib/config';
 import { getResourcesByTag } from '@/lib/cloudinary';
 
 import MediaGallery from '@/components/MediaGallery';
+import { auth } from '@/lib/auth';
 
 export const revalidate = 10;
 
-export default async function Home() {
+export default async function CreationsPage() {
+  const session = await auth();
+  
+  if (!session?.user?.id) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+            Please sign in to access your creations
+          </h1>
+        </div>
+      </div>
+    );
+  }
+
   const { creationTag } = getConfig();
-  const { resources } = await getResourcesByTag(creationTag);
+  const { resources } = await getResourcesByTag(creationTag, session.user.id);
+  
   return (
     <div className="h-full mt-6">
       <MediaGallery

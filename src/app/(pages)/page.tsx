@@ -6,12 +6,30 @@ import MediaGallery from '@/components/MediaGallery';
 import Container from '@/components/Container';
 import UploadButton from '@/components/UploadButton';
 import { Button } from '@/components/ui/button';
+import { auth } from '@/lib/auth';
 
 export const revalidate = 10;
 
 export default async function Home() {
+  const session = await auth();
+  
+  if (!session?.user?.id) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+            Please sign in to access your gallery
+          </h1>
+          <p className="text-gray-600 dark:text-gray-300">
+            You will be redirected to the sign-in page shortly.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   const { libraryTag } = getConfig();
-  const { resources } = await getResourcesByTag(libraryTag);
+  const { resources } = await getResourcesByTag(libraryTag, session.user.id);
   
   return (
     <div className="min-h-full">

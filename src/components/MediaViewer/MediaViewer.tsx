@@ -42,10 +42,17 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
     mutationFn: async ({ formData }: { formData: FormData, type: string }) => {
       // Preload the URL transformation
       await fetch(formData.get('file') as string);
-      const results = await fetch('/api/upload', {
+      const response = await fetch('/api/upload', {
         method: 'POST',
         body: formData
-      }).then(r => r.json());
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Upload failed: ${response.status} ${errorText}`);
+      }
+      
+      const results = await response.json();
       return results as CloudinaryResource;
     },
   });
@@ -299,30 +306,55 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
       state: 'deleting'
     });
 
-    const tagsToUpdate = [
-      // First remove all of the tags used for library organization
-      ...resource.tags.filter(tag => {
-        return ![
-          libraryTag,
-          creationTag,
-          favoritesTag,
-        ].includes(tag)
-      }),
-      // Then add the tag for trash
-      trashTag
-    ]
+    if (isTrash) {
+      // Permanent delete from trash
+      const formData = new FormData();
+      formData.append('publicId', resource.public_id);
+      formData.append('permanent', 'true');
 
-    const formData = new FormData();
+      const response = await fetch('/api/delete', {
+        method: 'POST',
+        body: formData
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to delete permanently: ${response.status} ${errorText}`);
+      }
 
-    formData.append('publicId', resource.public_id);
-    formData.append('tags', tagsToUpdate.join(','));
+      router.push('/trash');
+    } else {
+      // Move to trash
+      const tagsToUpdate = [
+        // First remove all of the tags used for library organization
+        ...resource.tags.filter(tag => {
+          return ![
+            libraryTag,
+            creationTag,
+            favoritesTag,
+          ].includes(tag)
+        }),
+        // Then add the tag for trash
+        trashTag
+      ]
 
-    await fetch('/api/resources/tags/update', {
-      method: 'POST',
-      body: formData
-    });
+      const formData = new FormData();
 
-    router.push('/');
+      formData.append('publicId', resource.public_id);
+      formData.append('tags', tagsToUpdate.join(','));
+
+      const response = await fetch('/api/resources/tags/update', {
+        method: 'POST',
+        body: formData
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to move to trash: ${response.status} ${errorText}`);
+      }
+
+      router.push('/');
+    }
   }
 
   /**
@@ -343,10 +375,15 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
     formData.append('publicId', resource.public_id);
     formData.append('tags', tagsToUpdate.join(','));
 
-    await fetch('/api/resources/tags/update', {
+    const response = await fetch('/api/resources/tags/update', {
       method: 'POST',
       body: formData
     });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Failed to restore from trash: ${response.status} ${errorText}`);
+    }
 
     router.refresh();
   }
@@ -384,7 +421,7 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
     try {
       await navigator.clipboard.writeText(text);
     } catch (err) {
-      console.error('Failed to copy text: ', err);
+      // Silent fail for copy operation
     }
   }
 
@@ -421,7 +458,10 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
           <DialogContent data-exclude-close-on-click={true}>
             <DialogHeader>
               <DialogTitle className="text-center">
-                Are you sure you want to delete?
+                {isTrash 
+                  ? "Are you sure you want to permanently delete this image?" 
+                  : "Are you sure you want to move this image to trash?"
+                }
               </DialogTitle>
             </DialogHeader>
             <DialogFooter className="justify-center sm:justify-center">
@@ -436,7 +476,7 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
                 {deletion?.state !== "deleting" && (
                   <Trash2 className="h-4 w-4 mr-2" />
                 )}
-                Delete
+                {isTrash ? "Delete Forever" : "Move to Trash"}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -480,13 +520,13 @@ const MediaViewer = ({ resource }: { resource: CloudinaryResource }) => {
                   <input
                     type="text"
                     readOnly
-                    value={`${window.location.origin}/resources/${resource.asset_id}`}
+                    value={`${typeof window !== 'undefined' ? window.location.origin : ''}/resources/${resource.asset_id}`}
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-sm"
                   />
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => copyToClipboard(`${window.location.origin}/resources/${resource.asset_id}`)}
+                    onClick={() => copyToClipboard(`${typeof window !== 'undefined' ? window.location.origin : ''}/resources/${resource.asset_id}`)}
                   >
                     <Copy className="h-4 w-4" />
                   </Button>

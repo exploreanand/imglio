@@ -2,9 +2,11 @@
 
 import { Upload } from 'lucide-react';
 import { CloudinaryUploadWidgetResults } from 'next-cloudinary';
+import { useSession } from 'next-auth/react';
 
 import { useResources } from '@/hooks/use-resources';
 import { getConfig } from '@/lib/config';
+import { getUserFolder } from '@/lib/utils';
 
 import CldUploadButton from "@/components/CldUploadButton";
 
@@ -13,7 +15,8 @@ interface UploadButtonProps {
 }
 
 const UploadButton = ({ children }: UploadButtonProps) => {
-  const { assetsFolder, assetsTag, libraryTag } = getConfig();
+  const { data: session } = useSession();
+  const { assetsTag, libraryTag } = getConfig();
 
   const { addResources } = useResources({
     disableFetch: true
@@ -26,9 +29,15 @@ const UploadButton = ({ children }: UploadButtonProps) => {
   }
 
   function handleOnError(error: any) {
-    console.log('error', error)
     // @TODO: Toast
   }
+
+  // Don't render upload button if no session
+  if (!session?.user?.id) {
+    return null;
+  }
+
+  const userFolder = getUserFolder(session.user.id);
 
   return (
     <CldUploadButton
@@ -39,8 +48,9 @@ const UploadButton = ({ children }: UploadButtonProps) => {
         tags: [
           assetsTag,
           libraryTag,
+          `user-${session.user.id}`,
         ],
-        folder: assetsFolder
+        folder: userFolder
       }}
       onSuccess={handleOnSuccess}
       onError={handleOnError}

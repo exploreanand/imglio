@@ -28,7 +28,6 @@ export function useResources(options?: UseResources) {
 
   const _addResources = useMutation({
     mutationFn: async (resources: Array<CloudinaryResource>) => {
-      console.log(resources)
       return resources
     },
     onMutate: async (newResources) => {
