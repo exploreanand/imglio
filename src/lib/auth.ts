@@ -10,18 +10,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   callbacks: {
     session: async ({ session, token }: { session: any; token: any }) => {
+      console.log('Session callback - token:', token);
       if (token?.sub) {
         session.user.id = token.sub;
       }
       return session;
     },
     jwt: async ({ user, token }: { user: any; token: any }) => {
+      console.log('JWT callback - user:', user, 'token:', token);
       if (user) {
         token.sub = user.id;
       }
       return token;
     },
     redirect: async ({ url, baseUrl }: { url: string; baseUrl: string }) => {
+      console.log('Redirect callback - url:', url, 'baseUrl:', baseUrl);
       // If it's a relative URL, make it absolute
       if (url.startsWith('/')) {
         return `${baseUrl}${url}`;
@@ -41,4 +44,5 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     signIn: '/auth/signin',
   },
   debug: true,
+  secret: process.env.NEXTAUTH_SECRET,
 });
