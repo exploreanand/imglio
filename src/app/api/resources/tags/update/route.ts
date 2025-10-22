@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     return Response.json(
-      { error: 'Failed to update resource tags', details: error.message },
+      { error: 'Failed to update resource tags', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }
