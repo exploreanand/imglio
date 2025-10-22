@@ -21,6 +21,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
       return token;
     },
+    redirect: async ({ url, baseUrl }: { url: string; baseUrl: string }) => {
+      // If it's a relative URL, make it absolute
+      if (url.startsWith('/')) {
+        return `${baseUrl}${url}`;
+      }
+      // If it's the same origin, allow it
+      if (new URL(url).origin === baseUrl) {
+        return url;
+      }
+      // Otherwise redirect to home
+      return baseUrl;
+    },
   },
   session: {
     strategy: 'jwt',
@@ -28,4 +40,5 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   pages: {
     signIn: '/auth/signin',
   },
+  debug: true,
 });

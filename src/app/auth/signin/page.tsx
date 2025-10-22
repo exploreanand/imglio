@@ -17,9 +17,12 @@ export default function SignInPage() {
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     try {
-      await signIn('google');
+      await signIn('google', { 
+        callbackUrl: '/',
+        redirect: true 
+      });
     } catch (error) {
-      // Handle sign in error silently
+      console.error('Sign in error:', error);
     } finally {
       setIsLoading(false);
     }

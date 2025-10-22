@@ -13,14 +13,18 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith('/_next') ||
     request.nextUrl.pathname.startsWith('/favicon.ico') ||
     request.nextUrl.pathname.startsWith('/public') ||
-    request.nextUrl.pathname.startsWith('/auth/signin')
+    request.nextUrl.pathname.startsWith('/auth/')
   ) {
     return NextResponse.next();
   }
 
+  // If user is authenticated and trying to access sign-in page, redirect to home
+  if (token && request.nextUrl.pathname === '/auth/signin') {
+    return NextResponse.redirect(new URL('/', request.url));
+  }
+
   // Redirect to sign-in if no token
   if (!token) {
-    // Simply redirect to signin without callback URL to avoid header size issues
     return NextResponse.redirect(new URL('/auth/signin', request.url));
   }
 
