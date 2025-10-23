@@ -1,17 +1,30 @@
 import NextAuth from 'next-auth';
 import Google from 'next-auth/providers/google';
+import GitHub from 'next-auth/providers/github';
+import { MongoDBAdapter } from '@auth/mongodb-adapter';
+import clientPromise from './mongodb';
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  adapter: MongoDBAdapter(clientPromise),
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
+    GitHub({
+      clientId: process.env.GITHUB_ID!,
+      clientSecret: process.env.GITHUB_SECRET!,
+    }),
   ],
   callbacks: {
-    session: async ({ session, token }: { session: any; token: any }) => {
-      console.log('Session callback - token:', token);
-      if (token?.sub) {
+    session: async ({ session, user, token }: { session: any; user: any; token: any }) => {
+      console.log('Session callback - user:', user, 'token:', token);
+      // For database strategy, use user.id
+      if (user?.id) {
+        session.user.id = user.id;
+      }
+      // For JWT strategy, use token.sub as fallback
+      else if (token?.sub) {
         session.user.id = token.sub;
       }
       return session;
@@ -38,7 +51,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
   session: {
-    strategy: 'jwt',
+    strategy: 'database',
   },
   pages: {
     signIn: '/auth/signin',
