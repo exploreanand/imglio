@@ -5,23 +5,6 @@ import GitHub from 'next-auth/providers/github';
 // Check if MongoDB is available
 const shouldUseMongoDB = !!process.env.MONGODB_URI;
 
-// Create a safe MongoDB adapter function
-function createMongoDBAdapter() {
-  if (!shouldUseMongoDB) {
-    return undefined;
-  }
-  
-  try {
-    // Only import when needed
-    const { MongoDBAdapter } = require('@auth/mongodb-adapter');
-    const clientPromise = require('./mongodb').default;
-    return MongoDBAdapter(clientPromise);
-  } catch (error) {
-    console.error('Failed to create MongoDB adapter:', error);
-    return undefined;
-  }
-}
-
 // Create NextAuth configuration
 const authConfig = {
   providers: [
@@ -75,10 +58,15 @@ const authConfig = {
   secret: process.env.NEXTAUTH_SECRET,
 };
 
-// Conditionally add adapter
-const adapter = createMongoDBAdapter();
-if (adapter) {
-  (authConfig as any).adapter = adapter;
+// Conditionally add MongoDB adapter
+if (shouldUseMongoDB) {
+  try {
+    const { MongoDBAdapter } = require('@auth/mongodb-adapter');
+    const clientPromise = require('./mongodb').default;
+    (authConfig as any).adapter = MongoDBAdapter(clientPromise);
+  } catch (error) {
+    console.error('Failed to add MongoDB adapter:', error);
+  }
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);
