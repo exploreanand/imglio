@@ -46,7 +46,7 @@ const authConfig = {
     },
   },
   session: {
-    strategy: 'jwt', // Always use JWT for now
+    strategy: 'jwt' as const, // Always use JWT for now
   },
   pages: {
     signIn: '/auth/signin',
