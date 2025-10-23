@@ -1,14 +1,28 @@
 import NextAuth from 'next-auth';
 import Google from 'next-auth/providers/google';
 import GitHub from 'next-auth/providers/github';
-import { MongoDBAdapter } from '@auth/mongodb-adapter';
-import clientPromise from './mongodb';
 
 // Only use MongoDB adapter if we have a connection available
 const shouldUseMongoDB = !!process.env.MONGODB_URI;
 
+// Create a function to get the adapter conditionally
+function getAdapter() {
+  if (!shouldUseMongoDB) {
+    return undefined;
+  }
+  
+  try {
+    const { MongoDBAdapter } = require('@auth/mongodb-adapter');
+    const clientPromise = require('./mongodb').default;
+    return MongoDBAdapter(clientPromise);
+  } catch (error) {
+    console.error('Failed to initialize MongoDB adapter:', error);
+    return undefined;
+  }
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: shouldUseMongoDB ? MongoDBAdapter(clientPromise) : undefined,
+  adapter: getAdapter(),
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
