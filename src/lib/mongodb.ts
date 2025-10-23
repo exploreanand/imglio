@@ -1,10 +1,14 @@
 import { MongoClient, Db } from 'mongodb';
 
-if (!process.env.MONGODB_URI) {
+// Skip MongoDB connection during build time or if URI is not available
+const isBuildTime = process.env.NODE_ENV === 'production' && !process.env.MONGODB_URI;
+const shouldSkipConnection = isBuildTime || !process.env.MONGODB_URI;
+
+if (!shouldSkipConnection && !process.env.MONGODB_URI) {
   throw new Error('Please add your MongoDB URI to .env.local');
 }
 
-const uri = process.env.MONGODB_URI;
+const uri = process.env.MONGODB_URI || '';
 const options = {
   maxPoolSize: 10,
   serverSelectionTimeoutMS: 5000,
@@ -15,7 +19,10 @@ const options = {
 let client: MongoClient;
 let clientPromise: Promise<MongoClient>;
 
-if (process.env.NODE_ENV === 'development') {
+if (shouldSkipConnection) {
+  // Create a dummy promise that resolves to null during build time
+  clientPromise = Promise.resolve(null as any);
+} else if (process.env.NODE_ENV === 'development') {
   // In development mode, use a global variable so that the value
   // is preserved across module reloads caused by HMR (Hot Module Replacement).
   let globalWithMongo = global as typeof globalThis & {
@@ -38,6 +45,12 @@ if (process.env.NODE_ENV === 'development') {
 export default clientPromise;
 
 export async function getDatabase(): Promise<Db> {
+  if (shouldSkipConnection) {
+    throw new Error('MongoDB connection is not available during build time');
+  }
   const client = await clientPromise;
+  if (!client) {
+    throw new Error('MongoDB client is not available');
+  }
   return client.db('imglio');
 }
