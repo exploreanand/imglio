@@ -21,7 +21,17 @@ export default async function Home() {
   }
   
   const { libraryTag } = getConfig();
-  const { resources } = await getResourcesByTag(libraryTag, session.user.id);
+  
+  // Add error handling for MongoDB connection
+  let resources = [];
+  try {
+    const result = await getResourcesByTag(libraryTag, session.user.id);
+    resources = result.resources || [];
+  } catch (error) {
+    console.error('Error fetching resources:', error);
+    // Continue with empty resources array if MongoDB fails
+    resources = [];
+  }
   
   return (
     <div className="min-h-full">
