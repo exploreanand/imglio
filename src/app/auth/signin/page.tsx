@@ -18,21 +18,12 @@ export default function SignInPage() {
     setIsLoading(true);
     try {
       console.log('Starting Google sign in...');
-      const result = await signIn('google', { 
+      await signIn('google', { 
         callbackUrl: '/',
-        redirect: false 
+        redirect: true 
       });
-      console.log('Sign in result:', result);
-      
-      if (result?.ok) {
-        console.log('Sign in successful, redirecting...');
-        router.push('/');
-      } else if (result?.error) {
-        console.error('Sign in error:', result.error);
-      }
     } catch (error) {
       console.error('Sign in error:', error);
-    } finally {
       setIsLoading(false);
     }
   };
