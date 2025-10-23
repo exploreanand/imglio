@@ -15,6 +15,11 @@ export default async function Home() {
   
   // The middleware will handle redirecting unauthenticated users
   // This page should only be accessible to authenticated users
+  if (!session?.user?.id) {
+    // This should never happen due to middleware, but TypeScript needs this check
+    throw new Error('Unauthorized access - middleware should have redirected');
+  }
+  
   const { libraryTag } = getConfig();
   const { resources } = await getResourcesByTag(libraryTag, session.user.id);
   
