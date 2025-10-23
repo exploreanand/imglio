@@ -2,12 +2,12 @@ import { getConfig } from '@/lib/config';
 import { getResourcesByTag } from '@/lib/cloudinary';
 
 import MediaGallery from '@/components/MediaGallery';
-import { auth } from '@/lib/auth';
+import { safeAuth } from '@/lib/auth-helper';
 
 export const revalidate = 10;
 
 export default async function CreationsPage() {
-  const session = await auth();
+  const session = await safeAuth();
   
   if (!session?.user?.id) {
     return (

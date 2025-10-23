@@ -6,12 +6,12 @@ import MediaGallery from '@/components/MediaGallery';
 import Container from '@/components/Container';
 import UploadButton from '@/components/UploadButton';
 import { Button } from '@/components/ui/button';
-import { auth } from '@/lib/auth';
+import { safeAuth } from '@/lib/auth-helper';
 
 export const revalidate = 10;
 
 export default async function Home() {
-  const session = await auth();
+  const session = await safeAuth();
   
   // The middleware will handle redirecting unauthenticated users
   // This page should only be accessible to authenticated users

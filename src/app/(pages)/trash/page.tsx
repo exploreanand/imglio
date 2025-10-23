@@ -3,12 +3,12 @@ import { getResourcesByTag } from '@/lib/cloudinary';
 
 import MediaGallery from '@/components/MediaGallery';
 import EmptyTrashButton from '@/components/EmptyTrashButton';
-import { auth } from '@/lib/auth';
+import { safeAuth } from '@/lib/auth-helper';
 
 export const revalidate = 10;
 
 export default async function TrashPage() {
-  const session = await auth();
+  const session = await safeAuth();
   
   if (!session?.user?.id) {
     return (
