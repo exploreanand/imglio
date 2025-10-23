@@ -5,8 +5,7 @@ import { MongoDBAdapter } from '@auth/mongodb-adapter';
 import clientPromise from './mongodb';
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  // Temporarily disable MongoDB adapter until Atlas is set up
-  // adapter: MongoDBAdapter(clientPromise),
+  adapter: MongoDBAdapter(clientPromise),
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -52,7 +51,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
   session: {
-    strategy: 'jwt',
+    strategy: 'database',
   },
   pages: {
     signIn: '/auth/signin',
