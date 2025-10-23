@@ -23,7 +23,7 @@ export default async function Home() {
   const { libraryTag } = getConfig();
   
   // Add error handling for MongoDB connection
-  let resources = [];
+  let resources: any[] = [];
   try {
     const result = await getResourcesByTag(libraryTag, session.user.id);
     resources = result.resources || [];
