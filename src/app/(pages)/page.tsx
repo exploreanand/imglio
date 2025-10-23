@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { safeAuth } from '@/lib/auth-helper';
 
 export const revalidate = 10;
+export const dynamic = 'force-dynamic';
 
 export default async function Home() {
   const session = await safeAuth();

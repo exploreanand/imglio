@@ -2,6 +2,8 @@ import { getResourcebyAssetId } from '@/lib/cloudinary';
 
 import MediaViewer from '@/components/MediaViewer';
 
+export const dynamic = 'force-dynamic';
+
 async function Resource({ params }: { params: { assetId: string } }) {
   const { assetId } = params;
   const resource = await getResourcebyAssetId(assetId);

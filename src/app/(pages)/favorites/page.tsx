@@ -5,6 +5,7 @@ import MediaGallery from '@/components/MediaGallery';
 import { safeAuth } from '@/lib/auth-helper';
 
 export const revalidate = 10;
+export const dynamic = 'force-dynamic';
 
 export default async function FavoritesPage() {
   const session = await safeAuth();
