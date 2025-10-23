@@ -17,7 +17,6 @@ export default function SignInPage() {
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     try {
-      console.log('Starting Google sign in...');
       await signIn('google', { 
         callbackUrl: '/',
         redirect: true 

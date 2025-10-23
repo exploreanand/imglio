@@ -8,8 +8,6 @@ export async function middleware(request: NextRequest) {
     secureCookie: process.env.NODE_ENV === 'production'
   });
 
-  console.log('Middleware - pathname:', request.nextUrl.pathname, 'token:', token ? 'exists' : 'null');
-
   // Allow access to auth routes, API routes, and static files
   if (
     request.nextUrl.pathname.startsWith('/api/') ||
@@ -23,13 +21,11 @@ export async function middleware(request: NextRequest) {
 
   // If user is authenticated and trying to access sign-in page, redirect to home
   if (token && request.nextUrl.pathname === '/auth/signin') {
-    console.log('Middleware - redirecting authenticated user from signin to home');
     return NextResponse.redirect(new URL('/', request.url));
   }
 
   // Redirect to sign-in if no token
   if (!token) {
-    console.log('Middleware - redirecting unauthenticated user to signin');
     return NextResponse.redirect(new URL('/auth/signin', request.url));
   }
 
