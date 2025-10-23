@@ -61,7 +61,7 @@ const authConfig = {
 // Conditionally add MongoDB adapter
 if (shouldUseMongoDB) {
   try {
-    const { MongoDBAdapter } = require('@auth/mongodb-adapter');
+    const { MongoDBAdapter } = require('@auth/mongodb-adapter/index.js');
     const clientPromise = require('./mongodb').default;
     (authConfig as any).adapter = MongoDBAdapter(clientPromise);
   } catch (error) {
