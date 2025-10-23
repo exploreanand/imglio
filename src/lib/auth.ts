@@ -4,8 +4,11 @@ import GitHub from 'next-auth/providers/github';
 import { MongoDBAdapter } from '@auth/mongodb-adapter';
 import clientPromise from './mongodb';
 
+// Only use MongoDB adapter if we have a connection available
+const shouldUseMongoDB = !!process.env.MONGODB_URI;
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: MongoDBAdapter(clientPromise),
+  adapter: shouldUseMongoDB ? MongoDBAdapter(clientPromise) : undefined,
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -51,7 +54,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
   session: {
-    strategy: 'database',
+    strategy: shouldUseMongoDB ? 'database' : 'jwt',
   },
   pages: {
     signIn: '/auth/signin',

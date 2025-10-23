@@ -1,8 +1,7 @@
 import { MongoClient, Db } from 'mongodb';
 
-// Skip MongoDB connection during build time or if URI is not available
-const isBuildTime = process.env.NODE_ENV === 'production' && !process.env.MONGODB_URI;
-const shouldSkipConnection = isBuildTime || !process.env.MONGODB_URI;
+// Skip MongoDB connection if URI is not available
+const shouldSkipConnection = !process.env.MONGODB_URI;
 
 if (!shouldSkipConnection && !process.env.MONGODB_URI) {
   throw new Error('Please add your MongoDB URI to .env.local');
@@ -46,7 +45,7 @@ export default clientPromise;
 
 export async function getDatabase(): Promise<Db> {
   if (shouldSkipConnection) {
-    throw new Error('MongoDB connection is not available during build time');
+    throw new Error('MongoDB connection is not available - MONGODB_URI not set');
   }
   const client = await clientPromise;
   if (!client) {
