@@ -2,10 +2,10 @@ import { NextRequest } from 'next/server'
 
 import { getConfig } from '@/lib/config';
 import { getResourcesByTag } from '@/lib/cloudinary';
-import { auth } from '@/lib/auth';
+import { safeAuth } from '@/lib/auth-helper';
 
 export async function GET(request: NextRequest) {
-  const session = await auth();
+  const session = await safeAuth();
   
   if (!session?.user?.id) {
     return new Response('Unauthorized', { status: 401 });

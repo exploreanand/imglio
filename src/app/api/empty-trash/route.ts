@@ -1,7 +1,7 @@
 import { v2 as cloudinary } from 'cloudinary';
 
 import { getResourcesByTag } from '@/lib/cloudinary';
-import { auth } from '@/lib/auth';
+import { safeAuth } from '@/lib/auth-helper';
 
 cloudinary.config({
   cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
@@ -10,7 +10,7 @@ cloudinary.config({
 });
 
 export async function POST(request: Request) {
-  const session = await auth();
+  const session = await safeAuth();
   
   if (!session?.user?.id) {
     return new Response('Unauthorized', { status: 401 });
