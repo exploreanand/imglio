@@ -5,7 +5,8 @@ import { MongoDBAdapter } from '@auth/mongodb-adapter';
 import clientPromise from './mongodb';
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: MongoDBAdapter(clientPromise),
+  // Temporarily disable MongoDB adapter to fix build issues
+  // adapter: MongoDBAdapter(clientPromise),
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -51,7 +52,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
   session: {
-    strategy: 'database',
+    strategy: 'jwt',
   },
   pages: {
     signIn: '/auth/signin',
