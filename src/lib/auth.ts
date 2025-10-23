@@ -2,8 +2,9 @@ import NextAuth from 'next-auth';
 import Google from 'next-auth/providers/google';
 import GitHub from 'next-auth/providers/github';
 
-// Check if MongoDB is available
-const shouldUseMongoDB = !!process.env.MONGODB_URI;
+// Temporarily disable MongoDB adapter to fix build issues
+// We'll re-enable it when MONGODB_URI is properly configured
+const shouldUseMongoDB = false; // !!process.env.MONGODB_URI;
 
 // Create NextAuth configuration
 const authConfig = {
@@ -20,12 +21,8 @@ const authConfig = {
   callbacks: {
     session: async ({ session, user, token }: { session: any; user: any; token: any }) => {
       console.log('Session callback - user:', user, 'token:', token);
-      // For database strategy, use user.id
-      if (user?.id) {
-        session.user.id = user.id;
-      }
-      // For JWT strategy, use token.sub as fallback
-      else if (token?.sub) {
+      // For JWT strategy, use token.sub
+      if (token?.sub) {
         session.user.id = token.sub;
       }
       return session;
@@ -49,7 +46,7 @@ const authConfig = {
     },
   },
   session: {
-    strategy: shouldUseMongoDB ? 'database' : 'jwt',
+    strategy: 'jwt', // Always use JWT for now
   },
   pages: {
     signIn: '/auth/signin',
@@ -57,16 +54,5 @@ const authConfig = {
   debug: true,
   secret: process.env.NEXTAUTH_SECRET,
 };
-
-// Conditionally add MongoDB adapter
-if (shouldUseMongoDB) {
-  try {
-    const { MongoDBAdapter } = require('@auth/mongodb-adapter/index.js');
-    const clientPromise = require('./mongodb').default;
-    (authConfig as any).adapter = MongoDBAdapter(clientPromise);
-  } catch (error) {
-    console.error('Failed to add MongoDB adapter:', error);
-  }
-}
 
 export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);
