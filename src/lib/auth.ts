@@ -6,22 +6,31 @@ import GitHub from 'next-auth/providers/github';
 let mongoAdapter: any = null;
 let useDatabaseStrategy = false;
 
-// Only try to initialize MongoDB adapter if MONGODB_URI is available
-if (process.env.MONGODB_URI) {
+// Function to initialize MongoDB adapter
+function initializeMongoDBAdapter() {
+  if (!process.env.MONGODB_URI) {
+    console.log('MONGODB_URI not found, using JWT strategy');
+    return { adapter: null, useDatabase: false };
+  }
+
   try {
+    // Use require for now to avoid dynamic import issues
     const { MongoDBAdapter } = require('@auth/mongodb-adapter');
     const clientPromise = require('./mongodb').default;
-    mongoAdapter = MongoDBAdapter(clientPromise);
-    useDatabaseStrategy = true;
+    const adapter = MongoDBAdapter(clientPromise);
     console.log('MongoDB adapter initialized successfully');
+    return { adapter, useDatabase: true };
   } catch (error) {
     console.error('Failed to initialize MongoDB adapter:', error);
     console.log('Falling back to JWT strategy');
-    useDatabaseStrategy = false;
+    return { adapter: null, useDatabase: false };
   }
-} else {
-  console.log('MONGODB_URI not found, using JWT strategy');
 }
+
+// Initialize MongoDB adapter
+const { adapter, useDatabase } = initializeMongoDBAdapter();
+mongoAdapter = adapter;
+useDatabaseStrategy = useDatabase;
 
 // Create NextAuth configuration
 const authConfig = {
@@ -53,15 +62,15 @@ const authConfig = {
         // Database strategy - use the database user ID
         consistentUserId = user.id;
         console.log('✅ Using database user ID:', user.id);
-      } else if (token?.sub) {
-        // JWT strategy - use token.sub
-        consistentUserId = token.sub;
-        console.log('✅ Using JWT token sub:', token.sub);
       } else if (session?.user?.email) {
-        // Fallback: create a consistent ID from email
-        // This ensures the same user gets the same ID across sessions
+        // Create a consistent ID from email - this is the most reliable approach
+        // This ensures the same user gets the same ID across all sessions
         consistentUserId = `email-${session.user.email}`;
         console.log('✅ Using email-based user ID:', consistentUserId);
+      } else if (token?.sub) {
+        // JWT strategy fallback - use token.sub
+        consistentUserId = token.sub;
+        console.log('✅ Using JWT token sub:', token.sub);
       } else {
         // Last resort fallback
         consistentUserId = `unknown-${Date.now()}`;
@@ -74,7 +83,14 @@ const authConfig = {
     },
     jwt: async ({ user, token }: { user: any; token: any }) => {
       if (user) {
-        token.sub = user.id;
+        // Use email-based ID for consistency
+        if (user.email) {
+          token.sub = `email-${user.email}`;
+          console.log('🔑 JWT: Setting token.sub to email-based ID:', token.sub);
+        } else {
+          token.sub = user.id;
+          console.log('🔑 JWT: Setting token.sub to user.id:', token.sub);
+        }
       }
       return token;
     },
