@@ -30,10 +30,12 @@ export default function SignInPage() {
   const handleGitHubSignIn = async () => {
     setIsLoading(true);
     try {
-      await signIn('github');
+      await signIn('github', { 
+        callbackUrl: '/',
+        redirect: true 
+      });
     } catch (error) {
-      // Handle sign in error silently
-    } finally {
+      console.error('Sign in error:', error);
       setIsLoading(false);
     }
   };
