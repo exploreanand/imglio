@@ -17,11 +17,6 @@ export async function POST(request: Request) {
     return new Response('Unauthorized', { status: 401 });
   }
 
-  console.log('📤 Upload API Debug:', {
-    userId: session.user.id,
-    userEmail: session.user.email,
-    userFolder: getUserFolder(session.user.id)
-  });
 
   const requestFormData = await request.formData()
 
