@@ -2,8 +2,26 @@ import NextAuth from 'next-auth';
 import Google from 'next-auth/providers/google';
 import GitHub from 'next-auth/providers/github';
 
-// Check if MongoDB is available
-const shouldUseMongoDB = !!process.env.MONGODB_URI;
+// Check if MongoDB is available and try to initialize adapter
+let mongoAdapter: any = null;
+let useDatabaseStrategy = false;
+
+// Only try to initialize MongoDB adapter if MONGODB_URI is available
+if (process.env.MONGODB_URI) {
+  try {
+    const { MongoDBAdapter } = require('@auth/mongodb-adapter');
+    const clientPromise = require('./mongodb').default;
+    mongoAdapter = MongoDBAdapter(clientPromise);
+    useDatabaseStrategy = true;
+    console.log('MongoDB adapter initialized successfully');
+  } catch (error) {
+    console.error('Failed to initialize MongoDB adapter:', error);
+    console.log('Falling back to JWT strategy');
+    useDatabaseStrategy = false;
+  }
+} else {
+  console.log('MONGODB_URI not found, using JWT strategy');
+}
 
 // Create NextAuth configuration
 const authConfig = {
@@ -46,7 +64,7 @@ const authConfig = {
     },
   },
   session: {
-    strategy: shouldUseMongoDB ? 'database' as const : 'jwt' as const,
+    strategy: useDatabaseStrategy ? 'database' as const : 'jwt' as const,
   },
   pages: {
     signIn: '/auth/signin',
@@ -55,16 +73,9 @@ const authConfig = {
   secret: process.env.NEXTAUTH_SECRET,
 };
 
-// Conditionally add MongoDB adapter
-if (shouldUseMongoDB) {
-  try {
-    // Use require for now - we'll handle the import issue differently
-    const { MongoDBAdapter } = require('@auth/mongodb-adapter');
-    const clientPromise = require('./mongodb').default;
-    (authConfig as any).adapter = MongoDBAdapter(clientPromise);
-  } catch (error) {
-    console.error('Failed to add MongoDB adapter:', error);
-  }
+// Add MongoDB adapter if successfully initialized
+if (mongoAdapter) {
+  (authConfig as any).adapter = mongoAdapter;
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);
