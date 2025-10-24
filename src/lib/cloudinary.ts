@@ -45,6 +45,12 @@ export async function getResourcebyAssetId(assetId: string) {
  */
 export async function getResourcesByTag(tag: string, userId?: string) {
   try {
+    console.log('🔍 getResourcesByTag Debug:', {
+      tag,
+      userId,
+      userFolder: userId ? getUserFolder(userId) : 'none'
+    });
+
     if (userId) {
       // If userId is provided, get resources from user-specific folder and filter by tag
       const userFolder = getUserFolder(userId);
@@ -55,10 +61,21 @@ export async function getResourcesByTag(tag: string, userId?: string) {
         tags: true
       });
       
+      console.log('📁 Found resources in user folder:', {
+        userFolder,
+        totalResources: resources.length,
+        resourcesWithTag: resources.filter((r: any) => r.tags && r.tags.includes(tag)).length
+      });
+      
       // Filter resources by the specific tag
       const filteredResources = resources.filter((resource: any) => 
         resource.tags && resource.tags.includes(tag)
       );
+      
+      console.log('✅ Filtered resources for tag:', {
+        tag,
+        count: filteredResources.length
+      });
       
       return {
         resources: filteredResources as unknown as Array<CloudinaryResource>
@@ -74,6 +91,7 @@ export async function getResourcesByTag(tag: string, userId?: string) {
       };
     }
   } catch(e) {
+    console.error('❌ Error in getResourcesByTag:', e);
     return {
       resources: []
     }

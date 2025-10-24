@@ -37,14 +37,39 @@ const authConfig = {
   ],
   callbacks: {
     session: async ({ session, user, token }: { session: any; user: any; token: any }) => {
-      // For database strategy, use user.id
+      console.log('🔍 Session Callback Debug:', {
+        strategy: useDatabaseStrategy ? 'database' : 'jwt',
+        userFromDB: user?.id,
+        tokenSub: token?.sub,
+        sessionUserId: session?.user?.id,
+        userEmail: session?.user?.email
+      });
+      
+      // Use a consistent identifier based on the OAuth provider
+      // This ensures the same user gets the same ID regardless of session strategy
+      let consistentUserId: string;
+      
       if (user?.id) {
-        session.user.id = user.id;
+        // Database strategy - use the database user ID
+        consistentUserId = user.id;
+        console.log('✅ Using database user ID:', user.id);
+      } else if (token?.sub) {
+        // JWT strategy - use token.sub
+        consistentUserId = token.sub;
+        console.log('✅ Using JWT token sub:', token.sub);
+      } else if (session?.user?.email) {
+        // Fallback: create a consistent ID from email
+        // This ensures the same user gets the same ID across sessions
+        consistentUserId = `email-${session.user.email}`;
+        console.log('✅ Using email-based user ID:', consistentUserId);
+      } else {
+        // Last resort fallback
+        consistentUserId = `unknown-${Date.now()}`;
+        console.log('⚠️ Using fallback user ID:', consistentUserId);
       }
-      // For JWT strategy, use token.sub as fallback
-      else if (token?.sub) {
-        session.user.id = token.sub;
-      }
+      
+      session.user.id = consistentUserId;
+      console.log('🎯 Final session user ID:', session.user.id);
       return session;
     },
     jwt: async ({ user, token }: { user: any; token: any }) => {

@@ -56,12 +56,16 @@ export default function SignInPage() {
               </p>
             </div>
 
-            {/* Sign In Buttons */}
-            <div className="space-y-4">
+            {/* Sign In Form */}
+            <form className="space-y-4" role="form" aria-label="Sign in options">
               <button
+                type="button"
+                id="google-signin"
+                name="google-signin"
                 onClick={handleGoogleSignIn}
                 disabled={isLoading}
                 className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label="Sign in with Google"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path
@@ -87,16 +91,20 @@ export default function SignInPage() {
               </button>
 
               <button
+                type="button"
+                id="github-signin"
+                name="github-signin"
                 onClick={handleGitHubSignIn}
                 disabled={isLoading}
                 className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label="Sign in with GitHub"
               >
                 <Github className="w-5 h-5" />
                 <span className="font-medium">
                   {isLoading ? 'Signing in...' : 'Continue with GitHub'}
                 </span>
               </button>
-            </div>
+            </form>
 
             {/* Footer */}
             <div className="mt-8 text-center">
