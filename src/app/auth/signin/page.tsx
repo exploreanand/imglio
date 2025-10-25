@@ -116,18 +116,42 @@ export default function SignInPage() {
       </div>
 
       {/* Right Side - Image */}
-      <div className="hidden lg:block lg:w-1/2 relative">
+      <div className="hidden lg:block lg:w-1/2 relative bg-gray-200">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 via-purple-600/20 to-indigo-600/20"></div>
-        {/* Fallback img tag for debugging */}
+        {/* Debug: Show image path */}
+        <div className="absolute top-4 left-4 text-white text-xs bg-black/50 px-2 py-1 rounded">
+          Image: /home_img.jpeg
+        </div>
+        {/* Try multiple image formats */}
         <img
           src="/home_img.jpeg"
           alt="Imglio Photo Gallery"
           className="absolute inset-0 w-full h-full object-cover"
           onError={(e) => {
-            console.error('Image failed to load:', e);
-            e.currentTarget.style.display = 'none';
+            console.error('JPEG failed to load, trying JPG:', e);
+            e.currentTarget.src = '/home-image.jpg';
           }}
-          onLoad={() => console.log('Image loaded successfully')}
+          onLoad={() => {
+            console.log('Image loaded successfully:', '/home_img.jpeg');
+          }}
+        />
+        <img
+          src="/home-image.jpg"
+          alt="Imglio Photo Gallery Fallback"
+          className="absolute inset-0 w-full h-full object-cover opacity-0"
+          onError={(e) => {
+            console.error('Both image formats failed to load');
+            e.currentTarget.style.display = 'none';
+            // Show error message
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'absolute inset-0 flex items-center justify-center bg-red-100 text-red-600';
+            errorDiv.textContent = 'Image failed to load';
+            e.currentTarget.parentNode?.appendChild(errorDiv);
+          }}
+          onLoad={(e) => {
+            console.log('JPG fallback loaded successfully');
+            e.currentTarget.style.opacity = '1';
+          }}
         />
         <div className="absolute inset-0 bg-black/20"></div>
         <div className="absolute bottom-8 left-8 right-8">
