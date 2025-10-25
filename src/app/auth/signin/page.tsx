@@ -15,9 +15,9 @@ export default function SignInPage() {
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     try {
-      await signIn('google', { 
+      await signIn('google', {
         callbackUrl: '/',
-        redirect: true 
+        redirect: true
       });
     } catch (error) {
       console.error('Sign in error:', error);
@@ -28,9 +28,9 @@ export default function SignInPage() {
   const handleGitHubSignIn = async () => {
     setIsLoading(true);
     try {
-      await signIn('github', { 
+      await signIn('github', {
         callbackUrl: '/',
-        redirect: true 
+        redirect: true
       });
     } catch (error) {
       console.error('Sign in error:', error);
@@ -120,7 +120,18 @@ export default function SignInPage() {
         <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 via-purple-600/20 to-indigo-600/20"></div>
         {/* Debug: Show image path */}
         <div className="absolute top-4 left-4 text-white text-xs bg-black/50 px-2 py-1 rounded">
-          Image: /home_img.jpeg
+          <img
+            src="/home_img.jpeg"
+            alt="Imglio Photo Gallery"
+            className="absolute inset-0 w-full h-full object-cover"
+            onError={(e) => {
+              console.error('JPEG failed to load, trying JPG:', e);
+              e.currentTarget.src = '/home-image.jpg';
+            }}
+            onLoad={() => {
+              console.log('Image loaded successfully:', '/home_img.jpeg');
+            }}
+          />
         </div>
         {/* Try multiple image formats */}
         <img
