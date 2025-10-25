@@ -136,7 +136,7 @@ export default function SignInPage() {
           }}
         />
         <img
-          src="/home-image.jpg"
+          src="/home_image.jpeg"
           alt="Imglio Photo Gallery Fallback"
           className="absolute inset-0 w-full h-full object-cover opacity-0"
           onError={(e) => {
