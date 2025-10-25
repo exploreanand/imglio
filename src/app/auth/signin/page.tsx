@@ -118,12 +118,16 @@ export default function SignInPage() {
       {/* Right Side - Image */}
       <div className="hidden lg:block lg:w-1/2 relative">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 via-purple-600/20 to-indigo-600/20"></div>
-        <Image
+        {/* Fallback img tag for debugging */}
+        <img
           src="/home_img.jpeg"
           alt="Imglio Photo Gallery"
-          fill
-          className="object-cover"
-          priority
+          className="absolute inset-0 w-full h-full object-cover"
+          onError={(e) => {
+            console.error('Image failed to load:', e);
+            e.currentTarget.style.display = 'none';
+          }}
+          onLoad={() => console.log('Image loaded successfully')}
         />
         <div className="absolute inset-0 bg-black/20"></div>
         <div className="absolute bottom-8 left-8 right-8">
